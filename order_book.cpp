@@ -1,4 +1,7 @@
 #include "order_book.hpp"
+#include <iostream>
+#include <iomanip>
+
 
 OrderBook::OrderBook(){
     // constructor not needed currently
@@ -137,4 +140,68 @@ void OrderBook::modify_order(const uint64_t order_id, const double new_price, co
     new_order.timestamp = std::chrono::high_resolution_clock::now();
 
     add_order(new_order);
+}
+
+void OrderBook::print_top_of_book() const {
+    std::cout << "=== Top of Book ===\n";
+
+    if (!bids.empty()) {
+        const auto& top_bid = bids.begin();
+        int bid_quantity = 0;
+        for (const auto& order : top_bid->second)
+            bid_quantity += order.quantity;
+
+        std::cout << "Best Bid:  " << std::fixed << std::setprecision(2)
+                  << top_bid->first << " (" << bid_quantity << " shares)\n";
+    } else {
+        std::cout << "Best Bid:  None\n";
+    }
+
+    if (!asks.empty()) {
+        const auto& top_ask = asks.begin();
+        int ask_quantity = 0;
+        for (const auto& order : top_ask->second)
+            ask_quantity += order.quantity;
+
+        std::cout << "Best Ask:  " << std::fixed << std::setprecision(2)
+                  << top_ask->first << " (" << ask_quantity << " shares)\n";
+    } else {
+        std::cout << "Best Ask:  None\n";
+    }
+
+    std::cout << "===================\n";
+}
+
+void OrderBook::print_order_book() const {
+    std::cout << "\n=== Full Order Book ===\n";
+
+    std::cout << "\n-- Asks (Sell Orders) --\n";
+    if (asks.empty()) {
+        std::cout << "None\n";
+    } else {
+        for (const auto& [price, orders] : asks) {
+            int total_quantity = 0;
+            for (const auto& order : orders)
+                total_quantity += order.quantity;
+
+            std::cout << std::fixed << std::setprecision(2)
+                      << "Ask " << price << ": " << total_quantity << " shares\n";
+        }
+    }
+
+    std::cout << "\n-- Bids (Buy Orders) --\n";
+    if (bids.empty()) {
+        std::cout << "None\n";
+    } else {
+        for (const auto& [price, orders] : bids) {
+            int total_quantity = 0;
+            for (const auto& order : orders)
+                total_quantity += order.quantity;
+
+            std::cout << std::fixed << std::setprecision(2)
+                      << "Bid " << price << ": " << total_quantity << " shares\n";
+        }
+    }
+
+    std::cout << "========================\n";
 }
