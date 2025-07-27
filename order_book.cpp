@@ -13,6 +13,7 @@ void OrderBook::add_order(Order& order){
     // if after matching orders there is still some left over and it is a limit order, then store it
     // if it is a market order we discard the left over order as market orders are "fill now or forget"
     if (order.quantity > 0 and order.type == OrderType::LIMIT){
+        // OrderLocation struct is needed to allow cancel and modify functions to work
         OrderLocation current_order_location;
         current_order_location.price = order.price;
 
@@ -22,7 +23,7 @@ void OrderBook::add_order(Order& order){
 
             order_location[order.id] = current_order_location;
 
-            // if bids map contains order(s) at that price at it to the back of the deque
+            // if bids map contains order(s) at that price add it to the back of the deque
             if (bids.count(order.price)) {
                 bids[order.price].push_back(order);
 
@@ -62,7 +63,7 @@ void OrderBook::match_against_book(Order& order, MapType& book){
     for (auto price_level = book.begin(); price_level != book.end() && order.quantity > 0;){
             
         // if order is limit type and the max buy price is less than the current order sell price, break the loop
-        if (order.type == OrderType::LIMIT ){
+        if (order.type == OrderType::LIMIT){
             if (order.side == Side::BUY && order.price < price_level->first){
                 break;
             }
@@ -100,6 +101,7 @@ void OrderBook::cancel_order(const uint64_t order_id){
     OrderLocation cancelled_order = order_location[order_id];
     std::deque<Order>* deque;
 
+    // get the deque containing cancelled order
     if (cancelled_order.side == Side::BUY){
         deque = &bids[cancelled_order.price];
     }
@@ -108,6 +110,7 @@ void OrderBook::cancel_order(const uint64_t order_id){
     }
     if (cancelled_order.index < deque->size()) {
         deque->erase(deque->begin() + cancelled_order.index);
+        // if deque is empty remove it so we dont have a price in the map with no asks/bids attached
         if (deque->empty()) {
             if (cancelled_order.side == Side::BUY) {
                 bids.erase(cancelled_order.price);
@@ -119,7 +122,7 @@ void OrderBook::cancel_order(const uint64_t order_id){
 };
 
 void OrderBook::modify_order(const uint64_t order_id, const double new_price, const int new_quantity){
-
+    // to modify an order we delete it and then add a new one with the new price and quantity
     OrderLocation modified_order_loc = order_location[order_id];
     Order order_to_modify;
 

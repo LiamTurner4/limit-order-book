@@ -20,8 +20,8 @@ class OrderBook{
         void print_order_book() const;
 
     private:
-        std::map<double, std::deque<Order>, std::greater<>> bids; // a map to map a specific price to a deque of bids at that price. The map is ordered with highest price first.
-        std::map<double, std::deque<Order>> asks; // a map to map a specific price to a deque of asks at that price. The map is ordered with lowest price first.
+        std::map<double, std::deque<Order>, std::greater<>> bids; // An ordered map that associates each price with a deque of buy (bid) orders at that price level. The map is sorted in descending order, so the highest bid prices come first.
+        std::map<double, std::deque<Order>> asks; // An ordered map that associates each price with a deque of sell (ask) orders at that price level. The map is sorted in ascending order, so the lowest ask prices come first.
 
         struct OrderLocation{
             Side side;
@@ -33,7 +33,7 @@ class OrderBook{
 
         template <typename MapType>
         void match_against_book(Order& order, MapType& book);
-
+        
         void match_order(Order& order);
 
 

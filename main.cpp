@@ -5,10 +5,12 @@
 #include <iostream>
 #include <chrono>
 #include <vector>
-#include <numeric> // for accumulate
+#include <numeric>
 
 int main() {
-    const int NUM_ORDERS = 1000;
+    // set random seed to the time to allow for different random numbers each time
+    srand(time(0));
+    const int NUM_ORDERS = 15000;
     const int PRINT_INTERVAL = 100;
 
     OrderBook book;
@@ -21,13 +23,13 @@ int main() {
     std::cout << "Starting Order Book Simulation...\n";
 
     for (int i = 1; i <= NUM_ORDERS; ++i) {
-        Order order = generateRandomOrder();
+        Order order = generateRandomOrder();            
         total_orders++;
         if (order.type == OrderType::MARKET) total_market_orders++;
         else total_limit_orders++;
 
         auto start = std::chrono::high_resolution_clock::now();
-        book.add_order(order);  // Internally calls match_order()
+        book.add_order(order);
         auto end = std::chrono::high_resolution_clock::now();
 
         auto latency = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -48,7 +50,7 @@ int main() {
     if (!latencies_microsec.empty()) {
         long long total_latency = std::accumulate(latencies_microsec.begin(), latencies_microsec.end(), 0LL);
         double avg_latency = static_cast<double>(total_latency) / latencies_microsec.size();
-        std::cout << "Average Matching Latency: " << avg_latency << " µs\n";
+        std::cout << "Average Matching Latency: " << avg_latency << " us\n";
     }
 
     std::cout << "\nFinal Top of Book:\n";
